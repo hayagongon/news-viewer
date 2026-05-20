@@ -18,7 +18,7 @@ h1{font-size:18px;font-weight:600;margin:0 0 12px;letter-spacing:-0.01em;}
 .fl select,.fl input[type=text]{padding:5px 8px;border-radius:6px;border:0.5px solid var(--bd);background:var(--bg);color:var(--tx);font-size:12px;font-family:inherit;}
 .fl input[type=text]{flex:1;min-width:120px;}
 .fl button.sort{padding:5px 10px;border-radius:6px;border:0.5px solid var(--bd);background:var(--bg);color:var(--tx2);cursor:pointer;font-size:12px;}
-.fl button.reset{padding:5px 10px;border-radius:6px;border:0.5px solid #e74c3c;background:transparent;color:#e74c3c;cursor:pointer;font-size:12px;font-weight:600;}
+.fl button.reset{padding:5px 10px;border-radius:6px;border:0.5px solid var(--bd);background:var(--bg);color:var(--tx2);cursor:pointer;font-size:12px;}
 .cnt{font-size:11px;color:var(--tx2);margin-left:auto;}
 .list{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
 .card{display:flex;background:var(--bg);border:0.5px solid var(--bd2);border-radius:9px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.07);cursor:pointer;}
@@ -60,7 +60,7 @@ mark{background:#fef08a;color:inherit;padding:0 1px;border-radius:2px;}
 <select id="fCat"></select>
 <select id="fYear"></select>
 <select id="fMonth"></select>
-<button class="reset" id="resetBtn" style="display:none">✕ リセット</button>
+<button class="reset" id="resetBtn">✕ リセット</button>
 </div>
 <div class="fl">
 <input type="text" id="q" placeholder="キーワード検索...">
@@ -97,7 +97,6 @@ function render(){
   months.forEach(function(m){fMonthEl.innerHTML+='<option value="'+m+'"'+(st.fMonth===m?" selected":"")+'>'+m+'月</option>';});
   document.getElementById("q").value=st.q;
   document.getElementById("sortBtn").textContent=st.sort==="desc"?"↓新しい順":"↑古い順";
-  document.getElementById("resetBtn").style.display=(st.fCat!=="すべて"||st.fYear!=="すべて"||st.fMonth!=="すべて"||st.q)?"":"none";
   var f=filtered();
   document.getElementById("cnt").textContent=f.length+"件 / 全"+DATA.length+"件";
   var list=document.getElementById("list");
