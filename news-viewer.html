@@ -45,6 +45,7 @@ mark{background:#fef08a;color:inherit;padding:0 1px;border-radius:2px;}
 .dlg .sm2{font-size:14px;line-height:1.85;margin:0;}
 .dlg .src{margin-top:14px;padding:8px 12px;border-radius:7px;background:var(--bg2);border:0.5px solid var(--bd2);}
 .dlg .src a{font-size:12px;color:var(--ac);word-break:break-all;}
+.dlg .snip{margin-top:10px;padding:8px 12px;border-radius:7px;background:var(--bg2);border:0.5px solid var(--bd2);font-size:12px;color:var(--tx2);line-height:1.7;}
 .dlg .ft{display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:0.5px solid var(--bd2);}
 .dlg .cp{padding:7px 16px;border-radius:7px;border:1px solid var(--ac);background:transparent;color:var(--ac);cursor:pointer;font-size:13px;font-weight:500;}
 .dlg .cp.done{background:#27ae60;border-color:#27ae60;color:#fff;}
@@ -114,7 +115,8 @@ function render(){
 function openDetail(item){
   var c=CC[item.category]||"#555";var cf=item.confidence||"未検証";var cfc=CFC[cf]||"#95a5a6";var hasSrc=item.source&&item.source.trim();
   var dlg=document.getElementById("dlg");
-  dlg.innerHTML='<div class="top" style="background:'+c+'"></div><div class="pad"><div class="hd"><div class="meta2"><span class="tag" style="background:'+c+'18;color:'+c+'">'+esc(item.category)+'</span><span class="dt">📅 '+esc((item.date||"").replace(/（.）/,""))+'</span></div><button class="cls" id="closeBtn">×</button></div><h3>'+hl(item.title,st.q)+'</h3><div class="sm2">'+hl(item.summary,st.q)+'</div>'+(hasSrc?'<div class="src"><div style="font-size:10px;color:var(--tx2);margin-bottom:3px;font-weight:600">📎 ソース</div><a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">'+esc(item.source)+'</a></div>':"")+' <div class="ft"><button class="cp" id="cpBtn">📋 内容をコピー</button></div><p class="note">背景クリック または ×で閉じる</p></div>';
+  var hasSnip=item.snippet&&item.snippet.trim();
+  dlg.innerHTML='<div class="top" style="background:'+c+'"></div><div class="pad"><div class="hd"><div class="meta2"><span class="tag" style="background:'+c+'18;color:'+c+'">'+esc(item.category)+'</span><span class="dt">📅 '+esc((item.date||"").replace(/（.）/,""))+'</span></div><button class="cls" id="closeBtn">×</button></div><h3>'+hl(item.title,st.q)+'</h3><div class="sm2">'+hl(item.summary,st.q)+'</div>'+(hasSrc?'<div class="src"><div style="font-size:10px;color:var(--tx2);margin-bottom:3px;font-weight:600">📎 ソース</div><a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">'+esc(item.source)+'</a></div>':""  )+(hasSnip?'<div class="snip"><span style="font-size:10px;font-weight:600;color:var(--tx2);">🔍 取得時メモ</span><br>'+esc(item.snippet)+'</div>':"")+'<div class="ft"><button class="cp" id="cpBtn">📋 内容をコピー</button></div><p class="note">背景クリック または ×で閉じる</p></div>';
   document.getElementById("modal").classList.add("open");
   document.getElementById("closeBtn").addEventListener("click",closeDetail);
   document.getElementById("cpBtn").addEventListener("click",function(){
