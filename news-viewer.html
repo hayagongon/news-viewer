@@ -77,7 +77,7 @@ var CATS=["経済","政治","芸能・エンタメ・ゴシップ","スポーツ
 var CC={"経済":"#2980b9","政治":"#8e44ad","芸能・エンタメ・ゴシップ":"#e91e8c","スポーツ":"#16a085","テクノロジー":"#2c3e50","社会":"#7f8c8d","国際":"#d35400"};
 var CFC={"高":"#27ae60","中":"#f39c12","低":"#e74c3c","未検証":"#95a5a6"};
 var st={fCat:"すべて",fYear:"すべて",fMonth:"すべて",sort:"desc",q:""};
-function pd(l){if(!l)return null;var s=l.replace(/（.）/,"");var m=s.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);if(m)return{y:m[1],mo:m[2],d:m[3]};var m2=s.match(/(\d{4})年(\d{1,2})月(上旬|中旬|下旬)/);if(m2){var d2=m2[3]==="上旬"?"5":m2[3]==="中旬"?"15":"25";return{y:m2[1],mo:m2[2],d:d2};}var m3=s.match(/(\d{4})年(\d{1,2})月/);if(m3)return{y:m3[1],mo:m3[2],d:"15"};return null;}
+function pd(l){if(!l)return null;var s=l.replace(/（.）/,"");var m0=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m0)return{y:m0[1],mo:String(Number(m0[2])),d:String(Number(m0[3]))};var m=s.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);if(m)return{y:m[1],mo:m[2],d:m[3]};var m2=s.match(/(\d{4})年(\d{1,2})月(上旬|中旬|下旬)/);if(m2){var d2=m2[3]==="上旬"?"5":m2[3]==="中旬"?"15":"25";return{y:m2[1],mo:m2[2],d:d2};}var m3=s.match(/(\d{4})年(\d{1,2})月/);if(m3)return{y:m3[1],mo:m3[2],d:"15"};return null;}
 function dn(l){var p=pd(l);if(!p)return 0;return Number(p.y)*10000+Number(p.mo)*100+Number(p.d);}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function hl(t,q){if(!q||!q.trim())return esc(t);var kw=q.trim();var lo=t.toLowerCase();var lk=kw.toLowerCase();var o="",i=0,idx,n=0;while((idx=lo.indexOf(lk,i))!==-1&&n<50){if(idx>i)o+=esc(t.slice(i,idx));o+="<mark>"+esc(t.slice(idx,idx+kw.length))+"</mark>";i=idx+kw.length;n++;}if(i<t.length)o+=esc(t.slice(i));return o;}
