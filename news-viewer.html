@@ -60,8 +60,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .filter-reset{padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--tx2);cursor:pointer;font-size:12px;font-family:inherit;}
 
 /* ===== メイン ===== */
-.main{max-width:900px;margin:0 auto;padding:10px 12px 100px;}
-.list{display:flex;flex-direction:column;gap:7px;margin-top:6px;}
+.main{max-width:1400px;margin:0 auto;padding:10px 12px 100px;}
+.list{display:grid;grid-template-columns:1fr;gap:7px;margin-top:6px;}
+@media(min-width:760px){.list{grid-template-columns:1fr 1fr;}}
+@media(min-width:1200px){.list{grid-template-columns:1fr 1fr 1fr;}}
 .empty{text-align:center;padding:60px 20px;color:var(--tx3);font-size:14px;}
 
 /* ===== カード ===== */
@@ -86,8 +88,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .src-name{font-size:11px;color:var(--tx3);margin-left:auto;}
 .card-title{font-size:14px;font-weight:700;line-height:1.5;margin-bottom:4px;}
 .card-desc{font-size:12px;color:var(--tx2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px;}
-.card-url{font-size:11px;color:var(--ac);text-decoration:none;opacity:.75;word-break:break-all;}
+.card-actions{display:flex;align-items:center;gap:6px;}
+.card-url{font-size:11px;color:var(--ac);text-decoration:none;opacity:.75;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .card-url:hover{opacity:1;text-decoration:underline;}
+.wayback-btn{flex-shrink:0;border:none;background:none;cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;line-height:1;opacity:.5;transition:opacity .15s;}
+.wayback-btn:hover{opacity:1;background:var(--chip-bg);}
+.wayback-btn:disabled{cursor:default;}
 mark{background:#fef08a;color:inherit;padding:0 1px;border-radius:2px;}
 
 /* ===== ゴミ箱FAB ===== */
@@ -162,6 +168,7 @@ mark{background:#fef08a;color:inherit;padding:0 1px;border-radius:2px;}
   .header-top{padding:9px 12px;}
   .btn{padding:6px 10px;font-size:12px;}
   .main{padding:8px 8px 100px;}
+  .list{grid-template-columns:1fr !important;}
   .card-title{font-size:13px;}
   .trash-fab{bottom:18px;right:12px;}
 }
@@ -460,7 +467,7 @@ function renderCards(){
     html+='</div>';
     html+='<div class="card-title">'+hl(item.title,st.q)+'</div>';
     html+='<div class="card-desc">'+hl(item.summary,st.q)+'</div>';
-    if(hasSrc)html+='<a class="card-url" href="'+esc(item.source)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 '+esc(getDomain(item.source))+'</a>';
+    if(hasSrc)html+='<div class="card-actions"><a class="card-url" href="'+esc(item.source)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 '+esc(getDomain(item.source))+'</a><button class="wayback-btn" data-url="'+esc(item.source)+'" title="Webアーカイブで開く" onclick="openWayback(this.dataset.url,event)">📦</button></div>';
     html+='</div></div></div>';
   });
   listEl.innerHTML=html;
@@ -536,6 +543,21 @@ function clearPAT(){PAT.clear();document.getElementById("patInput").value="";upd
 
 // ===== トースト =====
 function showToast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2800);}
+
+// ===== Wayback Machine =====
+async function openWayback(url,event){
+  event.stopPropagation();
+  var btn=event.currentTarget;var orig=btn.textContent;
+  btn.textContent="⏳";btn.disabled=true;
+  try{
+    var res=await fetch("https://archive.org/wayback/available?url="+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)});
+    var data=await res.json();
+    var snap=data&&data.archived_snapshots&&data.archived_snapshots.closest&&data.archived_snapshots.closest.url;
+    if(snap){window.open(snap,"_blank","noopener");}
+    else{btn.textContent="❌";setTimeout(function(){btn.textContent=orig;btn.disabled=false;},2500);return;}
+  }catch(e){btn.textContent="❌";setTimeout(function(){btn.textContent=orig;btn.disabled=false;},2500);return;}
+  btn.textContent=orig;btn.disabled=false;
+}
 
 // ===== 全体再描画 =====
 function render(){updateSelects();renderCards();updateTrashFab();updateHeader();}
