@@ -304,15 +304,22 @@ function saveLocalDeleted(ids){localStorage.setItem("nv_deleted",JSON.stringify(
 function loadRemoteDeleted(){
   return ghGet("deleted-ids.json").then(function(r){
     if(!r.ok||!r.data||!r.data.content)return{ids:[],sha:null};
-    try{var ids=JSON.parse(atob(r.data.content.replace(/\n/g,"")));return{ids:Array.isArray(ids)?ids:[],sha:r.data.sha};}
-    catch{return{ids:[],sha:null};}
+    try{
+      var raw=atob(r.data.content.replace(/\n/g,""));
+      var bytes=new Uint8Array(raw.split("").map(function(c){return c.charCodeAt(0);}));
+      var text=new TextDecoder("utf-8").decode(bytes);
+      var ids=JSON.parse(text);
+      return{ids:Array.isArray(ids)?ids:[],sha:r.data.sha};
+    }catch{return{ids:[],sha:null};}
   });
 }
 function syncDeleted(){
   if(!PAT.get())return;
   loadRemoteDeleted().then(function(r){
     return ghPut("deleted-ids.json",JSON.stringify([...deletedIds],null,2),r.sha,"\uD83D\uDDD1 deleted-ids ("+deletedIds.size+"\u4EF6)");
-  }).catch(function(e){console.warn("GitHub sync failed:",e);});
+  }).then(function(r){
+    if(r&&!r.ok)showToast("\u26A0\uFE0F GitHub\u540C\u671F\u5931\u6557\uFF08PAT\u3092\u78BA\u8A8D\uFF09");
+  }).catch(function(e){showToast("\u26A0\uFE0F \u540C\u671F\u5931\u6557: "+e.message);});
 }
 
 // ===== 初期化 =====
