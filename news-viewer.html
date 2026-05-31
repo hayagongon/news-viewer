@@ -316,6 +316,8 @@ function loadRemoteDeleted(){
 function syncDeleted(){
   if(!PAT.get())return;
   loadRemoteDeleted().then(function(r){
+    r.ids.forEach(function(id){deletedIds.add(id);});
+    saveLocalDeleted(deletedIds);
     return ghPut("deleted-ids.json",JSON.stringify([...deletedIds],null,2),r.sha,"\uD83D\uDDD1 deleted-ids ("+deletedIds.size+"\u4EF6)");
   }).then(function(r){
     if(r&&!r.ok)showToast("\u26A0\uFE0F GitHub\u540C\u671F\u5931\u6557\uFF08PAT\u3092\u78BA\u8A8D\uFF09");
