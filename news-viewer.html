@@ -303,8 +303,7 @@ function saveDel(ids){localStorage.setItem("nv_deleted",JSON.stringify([...ids])
 function loadRemoteDel(){
   return ghGet("deleted-ids.json").then(function(r){
     if(!r.ok||!r.data||!r.data.content)return{ids:[],sha:null};
-    try{var raw=atob(r.data.content.replace(/
-/g,""));var bytes=new Uint8Array(raw.split("").map(function(c){return c.charCodeAt(0);}));var text=new TextDecoder("utf-8").decode(bytes);var ids=JSON.parse(text);return{ids:Array.isArray(ids)?ids:[],sha:r.data.sha};}
+    try{var raw=atob(r.data.content.replace(/\n/g,""));var bytes=new Uint8Array(raw.split("").map(function(c){return c.charCodeAt(0);}));var text=new TextDecoder("utf-8").decode(bytes);var ids=JSON.parse(text);return{ids:Array.isArray(ids)?ids:[],sha:r.data.sha};}
     catch{return{ids:[],sha:null};}
   });
 }
@@ -331,13 +330,13 @@ function syncDel(){
 // Tabs
 function buildTabs(){
   document.getElementById("tabs").innerHTML=TABS.map(function(t){
-    return '<button class="tab'+(st.cat===t.c?" on":"")+'" onclick="setCat(''+t.c+'')">'+t.l+'</button>';
+    return '<button class="tab'+(st.cat===t.c?" on":"")+'" onclick="setCat(\''+t.c+'\')">'+t.l+'</button>';
   }).join("");
 }
 function updateTabs(){document.querySelectorAll(".tab").forEach(function(t,i){t.classList.toggle("on",st.cat===TABS[i].c);});}
 
 // Filters
-function pd(l){if(!l)return null;var s=l.replace(/（.）/,"");var m0=s.match(/^(d{4})-(d{2})-(d{2})$/);if(m0)return{y:m0[1],mo:String(Number(m0[2])),d:String(Number(m0[3]))};var m=s.match(/(d{4})年(d{1,2})月(d{1,2})日/);if(m)return{y:m[1],mo:m[2],d:m[3]};var m2=s.match(/(d{4})年(d{1,2})月(上旬|中旬|下旬)/);if(m2){var d2=m2[3]==="上旬"?"5":m2[3]==="中旬"?"15":"25";return{y:m2[1],mo:m2[2],d:d2};}var m3=s.match(/(d{4})年(d{1,2})月/);if(m3)return{y:m3[1],mo:m3[2],d:"15"};return null;}
+function pd(l){if(!l)return null;var s=l.replace(/（.）/,"");var m0=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m0)return{y:m0[1],mo:String(Number(m0[2])),d:String(Number(m0[3]))};var m=s.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);if(m)return{y:m[1],mo:m[2],d:m[3]};var m2=s.match(/(\d{4})年(\d{1,2})月(上旬|中旬|下旬)/);if(m2){var d2=m2[3]==="上旬"?"5":m2[3]==="中旬"?"15":"25";return{y:m2[1],mo:m2[2],d:d2};}var m3=s.match(/(\d{4})年(\d{1,2})月/);if(m3)return{y:m3[1],mo:m3[2],d:"15"};return null;}
 function dn(l){var p=pd(l);if(!p)return 0;return Number(p.y)*10000+Number(p.mo)*100+Number(p.d);}
 function getFiltered(){
   var qt=st.q.trim().toLowerCase();
@@ -522,7 +521,7 @@ function renderTrashSheet(){
   if(del.length===0){list.innerHTML='<div class="tempty">削除済みの記事はありません</div>';return;}
   list.innerHTML=del.map(function(a){
     var c=CC[a.category]||"#888";
-    return '<div class="trow"><div class="trcnt"><div class="trmeta"><span class="trcat" style="color:'+c+'">'+esc(a.category)+'</span><span class="trdate">'+esc((a.date||"").replace(/（.）/,""))+'</span></div><div class="trtitle">'+esc(a.title)+'</div></div><button class="btn-restore" onclick="restore(''+esc(a.id)+'')">元に戻す</button></div>';
+    return '<div class="trow"><div class="trcnt"><div class="trmeta"><span class="trcat" style="color:'+c+'">'+esc(a.category)+'</span><span class="trdate">'+esc((a.date||"").replace(/（.）/,""))+'</span></div><div class="trtitle">'+esc(a.title)+'</div></div><button class="btn-restore" onclick="restore(\''+esc(a.id)+'\')">元に戻す</button></div>';
   }).join("");
 }
 
