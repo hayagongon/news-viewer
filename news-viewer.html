@@ -166,6 +166,9 @@ button{cursor:pointer;font-family:var(--ff);}
 .pnbody{overflow-y:auto;flex:1;padding:0 22px;}
 .pnfield{margin-bottom:14px;}
 .pnlbl{font-size:10.5px;font-weight:600;letter-spacing:0.08em;color:rgba(74,143,255,0.6);margin-bottom:6px;display:block;text-transform:uppercase;}
+.pnreq{color:var(--danger);margin-left:4px;}
+select.pnin{color:#c8d8e8;}
+select.pnin option[value=""]{color:rgba(255,255,255,0.3);}
 .pnin{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 13px;font-size:13px;color:#c8d8e8;font-family:var(--ff);outline:none;}
 .pnin::placeholder{color:rgba(255,255,255,0.2);}
 .pnrow{display:flex;gap:10px;}
@@ -654,45 +657,45 @@ function renderTrashSheet(){
 // Pin sheet (手動記事追加)
 function openPin(){
   if(document.getElementById("pinOv"))return;
-  var catOptions=TABS.filter(function(t){return t.c!=="全て";}).map(function(t){return '<option value="'+esc(t.c)+'">'+esc(t.l)+'</option>';}).join("");
+  var catOptions='<option value="" disabled selected>選択してください</option>'+TABS.filter(function(t){return t.c!=="全て";}).map(function(t){return '<option value="'+esc(t.c)+'">'+esc(t.l)+'</option>';}).join("");
   var ov=document.createElement("div");ov.className="sov";ov.id="pinOv";
   ov.addEventListener("click",function(e){if(e.target===ov)closePin();});
   ov.innerHTML='<div class="pnsheet"><div class="shandle"><div class="shandle-bar"></div></div>'+
     '<div class="pnhdr"><div class="pnhdr-left"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4a8fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="pntitle">記事を手動追加</span></div>'+
     '<button class="dclose" onclick="closePin()">✕</button></div>'+
     '<div class="pnbody">'+
-      '<div class="pnfield"><label class="pnlbl">記事URL</label><input class="pnin" id="pinUrl" placeholder="https://example.com/article"></div>'+
-      '<div class="pnfield"><label class="pnlbl">タイトル</label><input class="pnin" id="pinTitle" placeholder="記事タイトルを入力"></div>'+
+      '<div class="pnfield"><label class="pnlbl">タイトル<span class="pnreq">必須</span></label><input class="pnin" id="pinTitle" placeholder="記事タイトルを入力"></div>'+
       '<div class="pnrow">'+
-        '<div class="pnfield" style="flex:1"><label class="pnlbl">カテゴリ</label><select class="pnin" id="pinCat">'+catOptions+'</select></div>'+
-        '<div class="pnfield" style="flex:1"><label class="pnlbl">日付</label><input class="pnin" id="pinDate" placeholder="例: 2025年6月"></div>'+
+        '<div class="pnfield" style="flex:1"><label class="pnlbl">カテゴリ<span class="pnreq">必須</span></label><select class="pnin" id="pinCat">'+catOptions+'</select></div>'+
+        '<div class="pnfield" style="flex:1"><label class="pnlbl">日付<span class="pnreq">必須</span></label><input class="pnin" id="pinDate" placeholder="例: 2020年7月"></div>'+
       '</div>'+
+      '<div class="pnfield"><label class="pnlbl">記事URL</label><input class="pnin" id="pinUrl" placeholder="https://example.com/article（任意）"></div>'+
     '</div>'+
     '<div class="pnfoot"><button class="pnsave" id="pinSaveBtn" onclick="savePinArticle()">GitHubに保存して追加</button></div>'+
     '</div>';
   document.getElementById("app").appendChild(ov);
-  document.getElementById("pinUrl").addEventListener("input",updatePinSaveState);
   document.getElementById("pinTitle").addEventListener("input",updatePinSaveState);
+  document.getElementById("pinCat").addEventListener("change",updatePinSaveState);
+  document.getElementById("pinDate").addEventListener("input",updatePinSaveState);
   updatePinSaveState();
 }
 function closePin(){var el=document.getElementById("pinOv");if(el)el.remove();}
 function updatePinSaveState(){
-  var url=document.getElementById("pinUrl"),title=document.getElementById("pinTitle"),btn=document.getElementById("pinSaveBtn");
-  if(!url||!title||!btn)return;
-  btn.classList.toggle("on",!!(url.value.trim()||title.value.trim()));
+  var title=document.getElementById("pinTitle"),cat=document.getElementById("pinCat"),date=document.getElementById("pinDate"),btn=document.getElementById("pinSaveBtn");
+  if(!title||!cat||!date||!btn)return;
+  btn.classList.toggle("on",!!(title.value.trim()&&cat.value&&date.value.trim()));
 }
 function savePinArticle(){
-  var url=document.getElementById("pinUrl").value.trim();
   var title=document.getElementById("pinTitle").value.trim();
   var cat=document.getElementById("pinCat").value;
   var date=document.getElementById("pinDate").value.trim();
-  if(!url&&!title)return;
-  if(!date){var n=new Date();date=n.getFullYear()+"年"+(n.getMonth()+1)+"月";}
+  var url=document.getElementById("pinUrl").value.trim();
+  if(!title||!cat||!date)return;
   var item={
     id:"manual-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),
     category:cat,
     date:date,
-    title:title||url,
+    title:title,
     summary:"",
     source:url
   };
