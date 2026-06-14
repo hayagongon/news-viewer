@@ -65,14 +65,18 @@ button{cursor:pointer;font-family:var(--ff);}
 .fbar{border-bottom:1px solid var(--border-sub);flex-shrink:0;}
 .fbar-inner{display:flex;align-items:center;gap:8px;padding:8px 22px;}
 .fsel{font-size:11px;background:var(--accent-bg);border:1px solid var(--accent-border);padding:3px 8px;border-radius:5px;color:#e8eef8;font-weight:500;outline:none;}
+.fsel option{background:#0d1830;color:#e8eef8;}
 .fsort{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-ghost);background:none;border:none;padding:0;}
 .fsel-mode{font-size:11px;color:rgba(255,255,255,0.28);}
 
 /* Search */
 .sbar2{padding:6px 22px 8px;border-bottom:1px solid var(--border-sub);flex-shrink:0;display:none;}
 .sbar2.on{display:block;}
-.sinput{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border-sub);border-radius:8px;padding:7px 12px;color:var(--text-primary);font-size:13px;font-family:var(--ff);outline:none;}
+.swrap{position:relative;}
+.sinput{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border-sub);border-radius:8px;padding:7px 32px 7px 12px;color:var(--text-primary);font-size:13px;font-family:var(--ff);outline:none;}
 .sinput::placeholder{color:rgba(255,255,255,0.25);}
+.sclear{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.35);font-size:15px;line-height:1;padding:6px 8px;display:none;}
+.sclear.show{display:block;}
 
 /* List */
 .alist{flex:1;overflow-y:auto;overflow-x:hidden;}
@@ -176,6 +180,7 @@ select.pnin option[value=""]{color:rgba(255,255,255,0.3);}
 .pnhint{font-size:11px;color:rgba(255,255,255,0.25);margin:-6px 0 14px;line-height:1.6;}
 .pnin{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 13px;font-size:13px;color:#c8d8e8;font-family:var(--ff);outline:none;}
 .pnin::placeholder{color:rgba(255,255,255,0.2);}
+textarea.pnin{resize:vertical;min-height:64px;line-height:1.6;}
 .pnrow{display:flex;gap:10px;}
 .pnfoot{padding:14px 22px 36px;flex-shrink:0;}
 .pnsave{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:13px;font-size:13px;color:rgba(255,255,255,0.2);font-family:var(--ff);font-weight:500;transition:all 0.15s;}
@@ -269,7 +274,10 @@ mark{background:rgba(74,143,255,0.3);color:inherit;padding:0 1px;border-radius:2
   <!-- Search -->
   <div class="sbar2" id="searchBar">
     <div class="pcw">
-      <input class="sinput" id="q" placeholder="キーワード検索..." oninput="setQ(this.value)">
+      <div class="swrap">
+        <input class="sinput" id="q" placeholder="キーワード検索..." oninput="setQ(this.value)">
+        <button class="sclear" id="sClear" onclick="clearSearch()" title="クリア" type="button">✕</button>
+      </div>
     </div>
   </div>
 
@@ -455,7 +463,9 @@ function getDeleted(){
 function setCat(c){st.cat=c;selectedIds.clear();updateTabs();renderCards();updateHdr();}
 function setYear(v){st.year=v;st.month="全て";renderCards();updateHdr();}
 function setMonth(v){st.month=v;renderCards();updateHdr();}
-function setQ(v){st.q=v;renderCards();updateHdr();}
+function setQ(v){st.q=v;updateSearchClear();renderCards();updateHdr();}
+function updateSearchClear(){var q=document.getElementById("q"),b=document.getElementById("sClear");if(q&&b)b.classList.toggle("show",!!q.value);}
+function clearSearch(){var q=document.getElementById("q");if(!q)return;q.value="";setQ("");q.focus();}
 function toggleSort(){st.sort=st.sort==="desc"?"asc":"desc";document.getElementById("sortLbl").textContent=st.sort==="desc"?"新しい順":"古い順";renderCards();}
 function updateSelects(){
   var years=[...new Set(DATA.filter(function(n){return!deletedIds.has(n.id);}).map(function(n){var p=pd(n.date);return p?p.y:null;}).filter(Boolean))].sort(function(a,b){return b.localeCompare(a);});
@@ -672,8 +682,9 @@ function openPin(){
       '<div class="pnfield"><label class="pnlbl">記事URL</label>'+
         '<div class="pnfetch-row"><input class="pnin" id="pinUrl" placeholder="https://example.com/article"><button class="pnfetch-btn" id="pinFetchBtn" onclick="fetchPinMeta()">取得</button></div>'+
       '</div>'+
-      '<div class="pnhint">「取得」でタイトル・日付を自動入力（うまくいかない場合は手動で入力してください）</div>'+
+      '<div class="pnhint">「取得」でタイトル・日付・概要を自動入力（うまくいかない場合は手動で入力してください）</div>'+
       '<div class="pnfield"><label class="pnlbl">タイトル<span class="pnreq">必須</span></label><input class="pnin" id="pinTitle" placeholder="記事タイトルを入力"></div>'+
+      '<div class="pnfield"><label class="pnlbl">概要</label><textarea class="pnin" id="pinSummary" placeholder="記事の概要・本文（任意）" rows="3"></textarea></div>'+
       '<div class="pnrow">'+
         '<div class="pnfield" style="flex:1"><label class="pnlbl">カテゴリ<span class="pnreq">必須</span></label><select class="pnin" id="pinCat">'+catOptions+'</select></div>'+
         '<div class="pnfield" style="flex:1"><label class="pnlbl">日付<span class="pnreq">必須</span></label><input class="pnin" id="pinDate" placeholder="例: 2020年7月"></div>'+
@@ -700,6 +711,18 @@ function extractPinDate(text){
   var m=body.slice(0,400).match(/(\d{4})[-\/年](\d{1,2})[-\/月]\d{1,2}/);
   return m?m[1]+"年"+Number(m[2])+"月":"";
 }
+function extractPinSummary(text){
+  var idx=text.indexOf("Markdown Content:");
+  var body=idx>=0?text.slice(idx+17):text;
+  var lines=body.split("\n").map(function(l){return l.trim();})
+    .filter(function(l){return l&&l[0]!=="#";})
+    .map(function(l){
+      return l.replace(/!\[[^\]]*\]\([^)]*\)/g,"").replace(/\[([^\]]*)\]\([^)]*\)/g,"$1").replace(/[#*_>\`]/g,"").trim();
+    }).filter(function(l){return l.length>=40;});
+  if(!lines.length)return "";
+  var s=lines[0];
+  return s.length>220?s.slice(0,220)+"…":s;
+}
 function fetchPinMeta(){
   var urlEl=document.getElementById("pinUrl"),btn=document.getElementById("pinFetchBtn");
   var url=urlEl.value.trim();
@@ -709,9 +732,10 @@ function fetchPinMeta(){
   Promise.race([fetch("https://r.jina.ai/"+url),timeout])
     .then(function(r){if(!r.ok)throw new Error("ng");return r.text();})
     .then(function(text){
-      var title=extractPinTitle(text),date=extractPinDate(text),filled=[];
+      var title=extractPinTitle(text),date=extractPinDate(text),summary=extractPinSummary(text),filled=[];
       if(title){document.getElementById("pinTitle").value=title;filled.push("タイトル");}
       if(date){document.getElementById("pinDate").value=date;filled.push("日付");}
+      if(summary){document.getElementById("pinSummary").value=summary;filled.push("概要");}
       updatePinSaveState();
       showToast(filled.length?filled.join("・")+"を自動取得しました（内容を確認してください）":"自動取得できませんでした。手動で入力してください。");
     })
@@ -728,13 +752,14 @@ function savePinArticle(){
   var cat=document.getElementById("pinCat").value;
   var date=document.getElementById("pinDate").value.trim();
   var url=document.getElementById("pinUrl").value.trim();
+  var summary=document.getElementById("pinSummary").value.trim();
   if(!title||!cat||!date)return;
   var item={
     id:"manual-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),
     category:cat,
     date:date,
     title:title,
-    summary:"",
+    summary:summary,
     source:url
   };
   DATA.unshift(item);
