@@ -687,10 +687,11 @@ function savePinArticle(){
   var cat=document.getElementById("pinCat").value;
   var date=document.getElementById("pinDate").value.trim();
   if(!url&&!title)return;
+  if(!date){var n=new Date();date=n.getFullYear()+"年"+(n.getMonth()+1)+"月";}
   var item={
     id:"manual-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),
     category:cat,
-    date:date||"新着",
+    date:date,
     title:title||url,
     summary:"",
     source:url
