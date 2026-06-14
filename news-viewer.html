@@ -400,15 +400,26 @@ function loadRemoteManual(){
     catch{return{items:[],sha:null};}
   });
 }
+function mergeRemoteManual(remoteItems){
+  var map={},order=[];
+  manualItems.forEach(function(i){if(!(i.id in map))order.push(i.id);map[i.id]=i;});
+  remoteItems.forEach(function(i){if(!(i.id in map))order.push(i.id);map[i.id]=i;});
+  manualItems=order.map(function(id){return map[id];});
+}
 function mergeManualIntoData(){
-  var ids=new Set(DATA.map(function(d){return d.id;}));
-  manualItems.forEach(function(m){if(!ids.has(m.id)){DATA.unshift(m);ids.add(m.id);}});
+  var idx={};
+  DATA.forEach(function(d,i){idx[d.id]=i;});
+  var toAdd=[];
+  manualItems.forEach(function(m){
+    if(m.id in idx)DATA[idx[m.id]]=m;
+    else toAdd.push(m);
+  });
+  toAdd.forEach(function(m){DATA.unshift(m);});
 }
 function syncManual(){
   if(!PAT.get())return;
   loadRemoteManual().then(function(r){
-    var ids=new Set(manualItems.map(function(i){return i.id;}));
-    r.items.forEach(function(i){if(!ids.has(i.id)){manualItems.push(i);ids.add(i.id);}});
+    mergeRemoteManual(r.items);
     saveManual(manualItems);
     return ghPut("manual-articles.json",JSON.stringify(manualItems,null,2),r.sha,"📌 manual-articles ("+manualItems.length+"件)");
   }).then(function(r){if(r&&!r.ok)showToast("⚠️ GitHub同期失敗");}).catch(function(e){showToast("⚠️ 同期失敗: "+e.message);});
@@ -425,8 +436,7 @@ function syncManual(){
   mergeManualIntoData();
   loadRemoteDel().then(function(r){r.ids.forEach(function(id){deletedIds.add(id);});saveDel(deletedIds);render();});
   loadRemoteManual().then(function(r){
-    var ids=new Set(manualItems.map(function(i){return i.id;}));
-    r.items.forEach(function(i){if(!ids.has(i.id)){manualItems.push(i);ids.add(i.id);}});
+    mergeRemoteManual(r.items);
     saveManual(manualItems);
     mergeManualIntoData();
     render();
