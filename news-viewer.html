@@ -169,6 +169,11 @@ button{cursor:pointer;font-family:var(--ff);}
 .pnreq{color:var(--danger);margin-left:4px;}
 select.pnin{color:#c8d8e8;}
 select.pnin option[value=""]{color:rgba(255,255,255,0.3);}
+.pnfetch-row{display:flex;gap:8px;}
+.pnfetch-row .pnin{flex:1;}
+.pnfetch-btn{flex-shrink:0;background:rgba(74,143,255,0.12);border:1px solid rgba(74,143,255,0.3);color:var(--accent);border-radius:8px;padding:0 16px;font-size:13px;font-family:var(--ff);font-weight:500;white-space:nowrap;}
+.pnfetch-btn:disabled{opacity:0.5;}
+.pnhint{font-size:11px;color:rgba(255,255,255,0.25);margin:-6px 0 14px;line-height:1.6;}
 .pnin{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 13px;font-size:13px;color:#c8d8e8;font-family:var(--ff);outline:none;}
 .pnin::placeholder{color:rgba(255,255,255,0.2);}
 .pnrow{display:flex;gap:10px;}
@@ -664,12 +669,15 @@ function openPin(){
     '<div class="pnhdr"><div class="pnhdr-left"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4a8fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="pntitle">記事を手動追加</span></div>'+
     '<button class="dclose" onclick="closePin()">✕</button></div>'+
     '<div class="pnbody">'+
+      '<div class="pnfield"><label class="pnlbl">記事URL</label>'+
+        '<div class="pnfetch-row"><input class="pnin" id="pinUrl" placeholder="https://example.com/article"><button class="pnfetch-btn" id="pinFetchBtn" onclick="fetchPinMeta()">取得</button></div>'+
+      '</div>'+
+      '<div class="pnhint">「取得」でタイトル・日付を自動入力（うまくいかない場合は手動で入力してください）</div>'+
       '<div class="pnfield"><label class="pnlbl">タイトル<span class="pnreq">必須</span></label><input class="pnin" id="pinTitle" placeholder="記事タイトルを入力"></div>'+
       '<div class="pnrow">'+
         '<div class="pnfield" style="flex:1"><label class="pnlbl">カテゴリ<span class="pnreq">必須</span></label><select class="pnin" id="pinCat">'+catOptions+'</select></div>'+
         '<div class="pnfield" style="flex:1"><label class="pnlbl">日付<span class="pnreq">必須</span></label><input class="pnin" id="pinDate" placeholder="例: 2020年7月"></div>'+
       '</div>'+
-      '<div class="pnfield"><label class="pnlbl">記事URL</label><input class="pnin" id="pinUrl" placeholder="https://example.com/article（任意）"></div>'+
     '</div>'+
     '<div class="pnfoot"><button class="pnsave" id="pinSaveBtn" onclick="savePinArticle()">GitHubに保存して追加</button></div>'+
     '</div>';
@@ -680,6 +688,36 @@ function openPin(){
   updatePinSaveState();
 }
 function closePin(){var el=document.getElementById("pinOv");if(el)el.remove();}
+function extractPinTitle(text){
+  var m=text.match(/^Title:\s*(.+)$/m);
+  return m?m[1].trim():"";
+}
+function extractPinDate(text){
+  var idx=text.indexOf("Markdown Content:");
+  var body=idx>=0?text.slice(idx,idx+3000):text.slice(0,3000);
+  var mt=body.match(/(\d{4})[-\/年](\d{1,2})[-\/月]\d{1,2}\D{0,3}\d{1,2}:\d{2}/);
+  if(mt)return mt[1]+"年"+Number(mt[2])+"月";
+  var m=body.slice(0,400).match(/(\d{4})[-\/年](\d{1,2})[-\/月]\d{1,2}/);
+  return m?m[1]+"年"+Number(m[2])+"月":"";
+}
+function fetchPinMeta(){
+  var urlEl=document.getElementById("pinUrl"),btn=document.getElementById("pinFetchBtn");
+  var url=urlEl.value.trim();
+  if(!/^https?:\/\//.test(url)){showToast("URLを入力してください");return;}
+  btn.disabled=true;btn.textContent="取得中...";
+  var timeout=new Promise(function(_,rej){setTimeout(function(){rej(new Error("timeout"));},15000);});
+  Promise.race([fetch("https://r.jina.ai/"+url),timeout])
+    .then(function(r){if(!r.ok)throw new Error("ng");return r.text();})
+    .then(function(text){
+      var title=extractPinTitle(text),date=extractPinDate(text),filled=[];
+      if(title){document.getElementById("pinTitle").value=title;filled.push("タイトル");}
+      if(date){document.getElementById("pinDate").value=date;filled.push("日付");}
+      updatePinSaveState();
+      showToast(filled.length?filled.join("・")+"を自動取得しました（内容を確認してください）":"自動取得できませんでした。手動で入力してください。");
+    })
+    .catch(function(){showToast("自動取得できませんでした。手動で入力してください。");})
+    .then(function(){btn.disabled=false;btn.textContent="取得";});
+}
 function updatePinSaveState(){
   var title=document.getElementById("pinTitle"),cat=document.getElementById("pinCat"),date=document.getElementById("pinDate"),btn=document.getElementById("pinSaveBtn");
   if(!title||!cat||!date||!btn)return;
